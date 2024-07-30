@@ -1,8 +1,8 @@
-'use client'
-import { Box, Stack, Typography, Button, Modal, TextField} from '@mui/material'
-import { firestore } from '@/firebase'
-import { query, collection, getDocs, getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore'
-import { useState, useEffect } from 'react'
+'use client';
+import { Box, Stack, Typography, Button, Modal, TextField } from '@mui/material';
+import { firestore } from '@/firebase';
+import { collection, query, getDocs, getDoc, doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { useState, useEffect } from 'react';
 
 const style = {
   position: 'absolute',
@@ -20,58 +20,59 @@ const style = {
 };
 
 export default function Home() {
-  const [pantry, setPantry] = useState([])
+  const [pantry, setPantry] = useState([]);
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
-
-  const [itemName, setItemName] = useState('')
+  const [itemName, setItemName] = useState('');
 
   const updatePantry = async () => {
-    const snapshot = query(collection(firestore, 'pantry'));
-    const docs = await getDocs(snapshot)
-    const pantryList = []
-    docs.forEach((doc) => {
-      pantryList.push({name:doc.id, ...doc.data()})
-    })
-    setPantry(pantryList)
-}
+    const q = query(collection(firestore, 'pantry'));
+    const querySnapshot = await getDocs(q);
+    const pantryList = [];
+    querySnapshot.forEach((doc) => {
+      pantryList.push({ name: doc.id, ...doc.data() });
+    });
+    setPantry(pantryList);
+  };
 
   const addItem = async (item) => {
-    const docRef = doc(collection(firestore, 'pantry'), item)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(collection(firestore, 'pantry'), item);
+    const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
-      const {count} = docSnap.data()
-      await setDoc(docRef, {count: count+1})
-      await updatePantry()
-      return
+      const { count } = docSnap.data();
+      await setDoc(docRef, { count: count + 1 });
+      await updatePantry();
+      return;
     }
-    await setDoc(docRef, {count: 1})
-    await updatePantry()
-  }
+    await setDoc(docRef, { count: 1 });
+    await updatePantry();
+  };
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'pantry'), item)
-    const docSnap = await getDoc(docRef)
-    const {count} = docSnap.data()
+    const docRef = doc(collection(firestore, 'pantry'), item);
+    const docSnap = await getDoc(docRef);
+    const { count } = docSnap.data();
     if (count > 1) {
-      await setDoc(docRef, {count: count-1})
-      await updatePantry()
-      return
+      await setDoc(docRef, { count: count - 1 });
+      await updatePantry();
+      return;
     }
-    await deleteDoc(docRef)
-    await updatePantry()
-  }
-  useEffect(() => {updatePantry()}, [])
+    await deleteDoc(docRef);
+    await updatePantry();
+  };
 
-  
+  useEffect(() => {
+    updatePantry();
+  }, []);
+
   return (
-    <Box 
-      width='100vw' 
-      height='100vh' 
-      display={'flex'} 
+    <Box
+      width='100vw'
+      height='100vh'
+      display={'flex'}
       flexDirection={'column'}
-      justifyContent={'center'} 
+      justifyContent={'center'}
       alignItems={'center'}
       gap={2}
     >
@@ -86,31 +87,39 @@ export default function Home() {
             Add Item
           </Typography>
           <Stack direction={'row'} spacing={2}>
-            <TextField id="outlined-basic" variant="outlined" label="Item" onChange={(e) => setItemName(e.target.value)} fullWidth/>
-            <Button variant="contained" onClick={() => {
-              addItem(itemName)
-              setItemName('')
-              handleClose()
-              }}>Add</Button>
+            <TextField
+              id="outlined-basic"
+              variant="outlined"
+              label="Item"
+              onChange={(e) => setItemName(e.target.value)}
+              fullWidth
+            />
+            <Button
+              variant="contained"
+              onClick={() => {
+                addItem(itemName);
+                setItemName('');
+                handleClose();
+              }}
+            >
+              Add
+            </Button>
           </Stack>
         </Box>
       </Modal>
       <Button variant="contained" onClick={handleOpen}>Add</Button>
-      <Box
-        border={'2px solid black'}
-      >
-        <Box 
-          width='800px' 
-          height='100px' 
+      <Box border={'2px solid black'}>
+        <Box
+          width='800px'
+          height='100px'
           display={'flex'}
           justifyContent={'center'}
           alignItems={'center'}
           bgcolor={'lightblue'}
         >
-          <Typography
-            variant={'h2'}
-            fontWeight={'bold'}
-          >Pantry Items</Typography>
+          <Typography variant={'h2'} fontWeight={'bold'}>
+            Pantry Items
+          </Typography>
         </Box>
         <Stack
           width='800px'
@@ -119,8 +128,7 @@ export default function Home() {
           overflow={'auto'}
         >
           {pantry.map((i) => (
-  
-            <Box 
+            <Box
               key={i.name}
               width='100%'
               minHeight='150px'
@@ -130,22 +138,22 @@ export default function Home() {
               bgcolor={'#f0f0f0'}
               padding={'36px'}
             >
-              <Typography
-                variant={'h3'}
-              >
+              <Typography variant={'h3'}>
                 {i.name.charAt(0).toUpperCase() + i.name.slice(1)}
               </Typography>
-              <Typography
-                variant={'h5'}
-              >Quantity: {i.count}</Typography>
-              <Button variant='contained' onClick={() => {
-                removeItem(i.name)
-              }}>Remove</Button>
+              <Typography variant={'h5'}>Quantity: {i.count}</Typography>
+              <Button
+                variant='contained'
+                onClick={() => {
+                  removeItem(i.name);
+                }}
+              >
+                Remove
+              </Button>
             </Box>
           ))}
         </Stack>
       </Box>
-
     </Box>
-  )
+  );
 }
