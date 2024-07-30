@@ -27,39 +27,49 @@ export default function Home() {
   const [itemName, setItemName] = useState('');
 
   const updatePantry = async () => {
-    const q = query(collection(firestore, 'pantry'));
-    const querySnapshot = await getDocs(q);
-    const pantryList = [];
-    querySnapshot.forEach((doc) => {
-      pantryList.push({ name: doc.id, ...doc.data() });
-    });
-    setPantry(pantryList);
+    try {
+      const q = query(collection(firestore, 'pantry'));
+      const querySnapshot = await getDocs(q);
+      const pantryList = [];
+      querySnapshot.forEach((doc) => {
+        pantryList.push({ name: doc.id, ...doc.data() });
+      });
+      setPantry(pantryList);
+    } catch (error) {
+      console.error('Error fetching pantry items:', error);
+    }
   };
 
   const addItem = async (item) => {
-    const docRef = doc(collection(firestore, 'pantry'), item);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      const { count } = docSnap.data();
-      await setDoc(docRef, { count: count + 1 });
+    try {
+      const docRef = doc(collection(firestore, 'pantry'), item);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const { count } = docSnap.data();
+        await setDoc(docRef, { count: count + 1 });
+      } else {
+        await setDoc(docRef, { count: 1 });
+      }
       await updatePantry();
-      return;
+    } catch (error) {
+      console.error('Error adding item:', error);
     }
-    await setDoc(docRef, { count: 1 });
-    await updatePantry();
   };
 
   const removeItem = async (item) => {
-    const docRef = doc(collection(firestore, 'pantry'), item);
-    const docSnap = await getDoc(docRef);
-    const { count } = docSnap.data();
-    if (count > 1) {
-      await setDoc(docRef, { count: count - 1 });
+    try {
+      const docRef = doc(collection(firestore, 'pantry'), item);
+      const docSnap = await getDoc(docRef);
+      const { count } = docSnap.data();
+      if (count > 1) {
+        await setDoc(docRef, { count: count - 1 });
+      } else {
+        await deleteDoc(docRef);
+      }
       await updatePantry();
-      return;
+    } catch (error) {
+      console.error('Error removing item:', error);
     }
-    await deleteDoc(docRef);
-    await updatePantry();
   };
 
   useEffect(() => {
